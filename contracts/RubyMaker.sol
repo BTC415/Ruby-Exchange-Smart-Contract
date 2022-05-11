@@ -128,10 +128,14 @@ contract RubyMaker is OwnableUpgradeable {
 
         uint256 rubyRewards = totalConvertedRuby - rubyToBurn;
 
-        // Burn rubyToken
-        RubyToken(rubyToken).burn(rubyToBurn);
+        if(rubyToBurn > 0) {
+            // Burn rubyToken
+            RubyToken(rubyToken).burn(rubyToBurn);
+        }
 
-        rubyStaker.notifyRewardAmount(1, rubyRewards);
+        if(rubyRewards > 0) {
+            rubyStaker.notifyRewardAmount(1, rubyRewards);
+        }
 
         emit Convert(msg.sender, token0, token1, amount0, amount1, rubyRewards, rubyToBurn);
     }

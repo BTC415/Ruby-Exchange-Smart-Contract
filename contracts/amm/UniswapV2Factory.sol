@@ -8,10 +8,13 @@ import "./UniswapV2Pair.sol";
 contract UniswapV2Factory is IUniswapV2Factory {
     address public override feeTo;
     address public override admin;
-    address public override migrator;
 
     // A mapping used to determine who can create pairs
     mapping(address => bool) public override pairCreators;
+
+    // A mapping used to determine who can swap with fee deduction
+    // (used for the UniswapV2Pair pairs). Only the RubyRouter at first.
+    mapping(address => bool) public override feeDeductionSwappers;
 
     mapping(address => mapping(address => address)) public override getPair;
     address[] public override allPairs;
@@ -53,18 +56,20 @@ contract UniswapV2Factory is IUniswapV2Factory {
         emit FeeToRecipientSet(newFeeTo);
     }
 
-    function setMigrator(address newMigrator) external override {
-        require(msg.sender == admin, "UniswapV2: FORBIDDEN");
-        migrator = newMigrator;
-        emit MigratorSet(newMigrator);
-    }
-
     function setPairCreator(address pairCreator, bool allowance) external override {
         require(msg.sender == admin, "UniswapV2: FORBIDDEN");
         require(pairCreator != address(0), "UniswapV2: INVALID_INIT_ARG");
 
         pairCreators[pairCreator] = allowance;
         emit PairCreatorSet(pairCreator, allowance);
+    }
+
+    function setFeeDeductionSwapper(address feeDeductionSwapper, bool allowance) external override {
+        require(msg.sender == admin, "UniswapV2: FORBIDDEN");
+        require(feeDeductionSwapper != address(0), "UniswapV2: INVALID_INIT_ARG");
+
+        feeDeductionSwappers[feeDeductionSwapper] = allowance;
+        emit FeeDecutionSwapperSet(feeDeductionSwapper, allowance);
     }
 
     function setAdmin(address newAdmin) external override {

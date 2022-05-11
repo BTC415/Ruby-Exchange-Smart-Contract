@@ -73,6 +73,11 @@ contract RubyStaker is Ownable, ReentrancyGuard, IRubyStaker {
     // registered reward tokens
     mapping(address => bool) public registeredRewardTokens;
 
+    // maximum number of rewards, excluding the locked token rewards
+    // for example, if maxNumRewards == 5, then 5 reward tokens can be added (numRewards can be maximum 5)
+    // the 0th reward token is the locked token rewards
+    uint256 public maxNumRewards;
+
     uint256 public numRewards;
     // rewardId => Reward
     mapping(uint256 => Reward) public rewardData;
@@ -134,14 +139,17 @@ contract RubyStaker is Ownable, ReentrancyGuard, IRubyStaker {
         _;
     }
 
-    constructor(address _rubyToken) public {
+    constructor(address _rubyToken, uint256 _maxNumRewards) public {
         require(_rubyToken != address(0), "RubyStaker: Invalid ruby token.");
+        require(_maxNumRewards <= 10, "RubyStaker: Invalid maximum number of rewards.");
         rubyToken = IERC20(_rubyToken);
         // set reward data
         uint256 rubyLockedRewardsId = numRewards;
         rewardData[rubyLockedRewardsId].rewardToken = _rubyToken;
         rewardData[rubyLockedRewardsId].lastUpdateTime = block.timestamp;
         numRewards++;
+
+        maxNumRewards = _maxNumRewards;
     }
 
     /* ========== ADMIN CONFIGURATION ========== */
@@ -155,7 +163,7 @@ contract RubyStaker is Ownable, ReentrancyGuard, IRubyStaker {
     // Add a new reward token to be distributed to stakers
     function addReward(address _rewardsToken, address _distributor) public onlyOwner {
         require(!registeredRewardTokens[_rewardsToken], "RubyStaker: Rewards token already registered.");
-
+        require(numRewards <= maxNumRewards, "RubyStaker: Maximum number of rewards already registered.");
         registeredRewardTokens[_rewardsToken] = true;
 
         uint256 rewardTokenId = numRewards;
