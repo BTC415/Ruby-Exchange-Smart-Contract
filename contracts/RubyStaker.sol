@@ -6,10 +6,10 @@ pragma experimental ABIEncoderV2;
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/EnumerableSet.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
-import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/math/Math.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
 import "./interfaces/IRubyStaker.sol";
 import "./token_mappings/RubyToken.sol";
 import "./libraries/BoringERC20.sol";
@@ -18,7 +18,7 @@ import "hardhat/console.sol";
 
 // RubyStaker based on EpsStaker.sol from Ellipsis finance
 // (https://github.com/ellipsis-finance/ellipsis/blob/master/contracts/EpsStaker.sol)
-contract RubyStaker is Ownable, ReentrancyGuard, IRubyStaker {
+contract RubyStaker is OwnableUpgradeable, ReentrancyGuardUpgradeable, IRubyStaker {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
@@ -139,9 +139,18 @@ contract RubyStaker is Ownable, ReentrancyGuard, IRubyStaker {
         _;
     }
 
-    constructor(address _rubyToken, uint256 _maxNumRewards) public {
+    function initialize(
+        address _owner,
+        address _rubyToken,
+        uint256 _maxNumRewards) public initializer {
         require(_rubyToken != address(0), "RubyStaker: Invalid ruby token.");
         require(_maxNumRewards <= 10, "RubyStaker: Invalid maximum number of rewards.");
+
+        OwnableUpgradeable.__Ownable_init();
+        ReentrancyGuardUpgradeable.__ReentrancyGuard_init();
+
+        transferOwnership(_owner);
+
         rubyToken = IERC20(_rubyToken);
         // set reward data
         uint256 rubyLockedRewardsId = numRewards;

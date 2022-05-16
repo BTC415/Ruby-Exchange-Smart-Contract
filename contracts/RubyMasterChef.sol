@@ -5,10 +5,9 @@ pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/EnumerableSet.sol";
-import "@openzeppelin/contracts/utils/Address.sol";
-import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
 import "./interfaces/IRubyMasterChefRewarder.sol";
 import "./interfaces/IRubyMasterChef.sol";
 import "./interfaces/IRubyStaker.sol";
@@ -17,7 +16,7 @@ import "./libraries/BoringERC20.sol";
 
 // MasterChef copied from https://github.com/traderjoe-xyz/joe-core/blob/main/contracts/MasterChefJoeV2.sol
 // Combines single and double rewards
-contract RubyMasterChef is Ownable, ReentrancyGuard {
+contract RubyMasterChef is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     using SafeMath for uint256;
     using BoringERC20 for IERC20;
     using EnumerableSet for EnumerableSet.AddressSet;
@@ -49,7 +48,7 @@ contract RubyMasterChef is Ownable, ReentrancyGuard {
     }
 
     // The RUBY TOKEN!
-    IERC20 public immutable RUBY;
+    IERC20 public RUBY;
 
     IRubyStaker public rubyStaker;
 
@@ -92,19 +91,25 @@ contract RubyMasterChef is Ownable, ReentrancyGuard {
     event UpdateEmissionRate(address indexed user, uint256 _rubyPerSec);
     event RubyTokenEmergencyWithdrawal(address indexed to, uint256 amount);
 
-    constructor(
+    function initialize(
+        address _owner,
         address _ruby,
         address _rubyStaker,
         address _treasuryAddr,
         uint256 _rubyPerSec,
         uint256 _startTimestamp,
         uint256 _treasuryPercent
-    ) public {
+    ) public initializer {
         require(_ruby != address(0), "RubyMasterChef: Invalid RubyToken address.");
         require(_rubyStaker != address(0), "RubyMasterChef: Invalid RubyStaker address.");
         require(_treasuryAddr != address(0), "RubyMasterChef: Invalid treasury address.");
         require(_rubyPerSec != 0, "RubyMasterChef: Invalid emission rate amount.");
         require(0 <= _treasuryPercent && _treasuryPercent <= 1000, "RubyMasterChef: invalid treasury percent value.");
+
+        OwnableUpgradeable.__Ownable_init();
+        ReentrancyGuardUpgradeable.__ReentrancyGuard_init();
+
+        transferOwnership(_owner);
 
         RUBY = IERC20(_ruby);
         rubyStaker = IRubyStaker(_rubyStaker);
@@ -126,9 +131,9 @@ contract RubyMasterChef is Ownable, ReentrancyGuard {
         IERC20 _lpToken,
         IRubyMasterChefRewarder _rewarder
     ) public onlyOwner {
-        require(Address.isContract(address(_lpToken)), "add: LP token must be a valid contract");
+        require(isContract(address(_lpToken)), "add: LP token must be a valid contract");
         require(
-            Address.isContract(address(_rewarder)) || address(_rewarder) == address(0),
+            isContract(address(_rewarder)) || address(_rewarder) == address(0),
             "add: rewarder must be contract or zero"
         );
         require(!lpTokens.contains(address(_lpToken)), "add: LP already added");
@@ -156,7 +161,7 @@ contract RubyMasterChef is Ownable, ReentrancyGuard {
         bool overwrite
     ) public onlyOwner {
         require(
-            Address.isContract(address(_rewarder)) || address(_rewarder) == address(0),
+            isContract(address(_rewarder)) || address(_rewarder) == address(0),
             "set: rewarder must be contract or zero"
         );
         massUpdatePools();
@@ -369,4 +374,16 @@ contract RubyMasterChef is Ownable, ReentrancyGuard {
         RUBY.safeTransfer(_receiver, _amount);
         emit RubyTokenEmergencyWithdrawal(_receiver, _amount);
     }
+
+    function isContract(address account) internal view returns (bool) {
+        // This method relies on extcodesize, which returns 0 for contracts in
+        // construction, since the code is only stored at the end of the
+        // constructor execution.
+
+        uint256 size;
+        // solhint-disable-next-line no-inline-assembly
+        assembly { size := extcodesize(account) }
+        return size > 0;
+    }
+
 }
