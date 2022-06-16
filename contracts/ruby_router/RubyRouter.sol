@@ -33,6 +33,14 @@ contract RubyRouter is OwnableUpgradeable {
     event NftAdminSet(address newNftAdmin);
     event MaxHopsSet(uint256 maxSwapHops);
 
+    event Swap(
+        address indexed sender,
+        uint256 amount0In,
+        uint256 amount1Out,
+        address token0,
+        address token1,
+        address indexed to);
+
     function initialize(
         address _owner,
         IUniswapV2Router02 _ammRouter,
@@ -60,7 +68,7 @@ contract RubyRouter is OwnableUpgradeable {
     function swap(SwapDetails calldata swapDetails) public returns (uint256 outputAmount) {
         require(swapDetails.order.length <= _maxSwapHops, "Invalid number of swap calls");
 
-        _handleInputToken(swapDetails);
+        (address tokenInAddr, uint256 amountIn) = _handleInputToken(swapDetails);
 
         uint256 ammSwapIndex = 0;
         uint256 stableSwapIndex = 0;
@@ -79,15 +87,15 @@ contract RubyRouter is OwnableUpgradeable {
             }
         }
 
-        _handleOutputToken(swapDetails, outputAmount);
+        address tokenOutAddr = _handleOutputToken(swapDetails, outputAmount);
 
         // mint a profile NFT if the user does not hold any Profile NFT already
         nftAdmin.mintProfileNFT(tx.origin);
+
+        emit Swap(msg.sender, amountIn, outputAmount, tokenInAddr, tokenOutAddr, tx.origin);
     }
 
-    function _handleInputToken(SwapDetails calldata swapDetails) private {
-        address tokenInAddr;
-        uint256 amountIn;
+    function _handleInputToken(SwapDetails calldata swapDetails) private returns (address tokenInAddr, uint256 amountIn) {
 
         if (swapDetails.order[0] == SwapType.AMM) {
             uint256[] memory amounts;
@@ -121,8 +129,7 @@ contract RubyRouter is OwnableUpgradeable {
     }
 
     // Transfers the output token back to the user
-    function _handleOutputToken(SwapDetails calldata swapDetails, uint256 amountOut) private {
-        address tokenOutAddr;
+    function _handleOutputToken(SwapDetails calldata swapDetails, uint256 amountOut) private returns (address tokenOutAddr) {
 
         uint256 lastHopIndex = swapDetails.order.length - 1;
         if (swapDetails.order[lastHopIndex] == SwapType.AMM) {
