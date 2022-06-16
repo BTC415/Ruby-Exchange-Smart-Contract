@@ -1,0 +1,83 @@
+{
+  "address": "0xe82940Aa79365AD656a1cA0ce7aab8056e1a51aF",
+  "abi": [
+    {
+      "inputs": [],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "inputs": [],
+      "name": "getRandom",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "addr",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "lotterySize",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "count",
+          "type": "uint256"
+        }
+      ],
+      "name": "getRandomNumber",
+      "outputs": [
+        {
+          "internalType": "uint256[]",
+          "name": "",
+          "type": "uint256[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "transactionHash": "0x0bd22540230fe8f2d8baa7de615b5ef7d8d15f20221f8ebacc6551239e3f3841",
+  "receipt": {
+    "to": "0x0000000000000000000000000000000000000000",
+    "from": "0x0fe812C977646525E824D5dCC3f37A0Cf153B13b",
+    "contractAddress": "0xe82940Aa79365AD656a1cA0ce7aab8056e1a51aF",
+    "transactionIndex": 0,
+    "gasUsed": "170833",
+    "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "blockHash": "0x35e3f9a5b6cc4b08909fd744a76d8ed40424ec3a7ce9f70fc884d6080be33c5c",
+    "transactionHash": "0x0bd22540230fe8f2d8baa7de615b5ef7d8d15f20221f8ebacc6551239e3f3841",
+    "logs": [],
+    "blockNumber": 187071,
+    "cumulativeGasUsed": "170833",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [],
+  "numDeployments": 1,
+  "solcInputHash": "8ca980d51c658bcb6e0b1d5c9f9ee0b7",
+  "metadata": "{\"compiler\":{\"version\":\"0.6.12+commit.27d51765\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[],\"name\":\"getRandom\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"addr\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"lotterySize\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"count\",\"type\":\"uint256\"}],\"name\":\"getRandomNumber\",\"outputs\":[{\"internalType\":\"uint256[]\",\"name\":\"\",\"type\":\"uint256[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/lottery/RNG_Skale.sol\":\"RNG_Skale\"},\"evmVersion\":\"istanbul\",\"libraries\":{\"__CACHE_BREAKER__\":\"0x00000000d41867734bbee4c6863d9255b2b06ac1\"},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"contracts/lottery/IRandomNumberGenerator.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity 0.6.12;\\n\\ninterface IRandomNumberGenerator {\\n    function getRandomNumber(uint256 lotterySize, uint256 count) external view returns (uint256[] memory randomness);\\n}\\n\",\"keccak256\":\"0xccb7036fae8969991c44536539bc27c3ba5be34f41d3a567d2a720f9b2105bb2\",\"license\":\"MIT\"},\"contracts/lottery/RNG_Skale.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity 0.6.12;\\n\\nimport \\\"./IRandomNumberGenerator.sol\\\";\\n\\ncontract RNG_Skale is IRandomNumberGenerator {\\n    constructor() public {}\\n\\n    function getRandomNumber(uint256 lotterySize, uint256 count) public view override returns (uint256[] memory) {\\n        uint256[] memory randomness = new uint256[](count);\\n        uint256 value = uint256(getRandom());\\n        for (uint256 i = 0; value != 0 && i < count; ) {\\n            randomness[i] = value % uint256(10)**lotterySize;\\n            uint256 j;\\n            for (j = 0; j < i; j++) if (randomness[j] == randomness[i]) break;\\n            value = value / (uint256(10**lotterySize));\\n            if (j < i) continue;\\n            else i++;\\n        }\\n        return randomness;\\n    }\\n\\n    function getRandom() public view returns (bytes32 addr) {\\n        assembly {\\n            let freemem := mload(0x40)\\n            let start_addr := add(freemem, 0)\\n            if iszero(staticcall(gas(), 0x18, 0, 0, start_addr, 32)) {\\n                invalid()\\n            }\\n            addr := mload(freemem)\\n        }\\n    }\\n}\\n\",\"keccak256\":\"0x4f0d38952116c6eeb26194b5a3a9fa81dafde225f33665ca7abd8ba0e54d3f98\",\"license\":\"MIT\"}},\"version\":1}",
+  "bytecode": "0x608060405234801561001057600080fd5b50610220806100206000396000f3fe608060405234801561001057600080fd5b50600436106100365760003560e01c80636e68fc0a1461003b578063aacc5a17146100ae575b600080fd5b61005e6004803603604081101561005157600080fd5b50803590602001356100c8565b60408051602080825283518183015283519192839290830191858101910280838360005b8381101561009a578181015183820152602001610082565b505050509050019250505060405180910390f35b6100b66101cd565b60408051918252519081900360200190f35b6060808267ffffffffffffffff811180156100e257600080fd5b5060405190808252806020026020018201604052801561010c578160200160208202803683370190505b50905060006101196101cd565b905060005b811580159061012c57508481105b156101c35785600a0a828161013d57fe5b0683828151811061014a57fe5b60200260200101818152505060005b8181101561019c5783828151811061016d57fe5b602002602001015184828151811061018157fe5b602002602001015114156101945761019c565b600101610159565b86600a0a83816101a857fe5b049250818110156101b957506101be565b506001015b61011e565b5090949350505050565b60405160009080602081848060185afa6101e357fe5b505191905056fea2646970667358221220c897a1f33b7ec85cc1643dc72307d3021935d69e7ef385580a48ab97d3bb5aff64736f6c634300060c0033",
+  "deployedBytecode": "0x608060405234801561001057600080fd5b50600436106100365760003560e01c80636e68fc0a1461003b578063aacc5a17146100ae575b600080fd5b61005e6004803603604081101561005157600080fd5b50803590602001356100c8565b60408051602080825283518183015283519192839290830191858101910280838360005b8381101561009a578181015183820152602001610082565b505050509050019250505060405180910390f35b6100b66101cd565b60408051918252519081900360200190f35b6060808267ffffffffffffffff811180156100e257600080fd5b5060405190808252806020026020018201604052801561010c578160200160208202803683370190505b50905060006101196101cd565b905060005b811580159061012c57508481105b156101c35785600a0a828161013d57fe5b0683828151811061014a57fe5b60200260200101818152505060005b8181101561019c5783828151811061016d57fe5b602002602001015184828151811061018157fe5b602002602001015114156101945761019c565b600101610159565b86600a0a83816101a857fe5b049250818110156101b957506101be565b506001015b61011e565b5090949350505050565b60405160009080602081848060185afa6101e357fe5b505191905056fea2646970667358221220c897a1f33b7ec85cc1643dc72307d3021935d69e7ef385580a48ab97d3bb5aff64736f6c634300060c0033",
+  "devdoc": {
+    "kind": "dev",
+    "methods": {},
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {},
+    "version": 1
+  },
+  "storageLayout": {
+    "storage": [],
+    "types": null
+  }
+}
