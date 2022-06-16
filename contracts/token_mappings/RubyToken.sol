@@ -22,7 +22,7 @@ contract RubyToken is ERC20Capped, AccessControl {
     /// @notice The total amount of burned Ruby tokens
     uint256 public burnedAmount;
 
-    constructor() public ERC20("RubyToken", "Ruby") ERC20Capped(MAX_SUPPLY) {
+    constructor() public ERC20("RubyToken", "RUBY") ERC20Capped(MAX_SUPPLY) {
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
